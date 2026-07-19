@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --ink: #1a1d29;
+        --muted: #6b7280;
+        --border: #e3e6ea;
+        --field-bg: #f7f8fa;
+        --accent: #3b5bfd;
+        --accent-ink: #ffffff;
+        --danger: #d64545;
+        --danger-bg: #fdecec;
+        --success: #1c8a52;
+        --success-bg: #e8f7ee;
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Google Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .wrap {
+        padding: 16px 16px 24px;
+      }
+
+      h1 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 2px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin: 0 0 16px;
+        font-size: 12px;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .field label {
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--ink);
+      }
+
+      .field .hint {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      input[type='text'],
+      input[type='date'],
+      input[type='time'],
+      input[type='number'],
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--field-bg);
+        color: var(--ink);
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s ease, background 0.15s ease;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 56px;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        background: #fff;
+      }
+
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .checks {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 10px;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--field-bg);
+      }
+
+      .checks label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 400;
+        font-size: 12.5px;
+        cursor: pointer;
+      }
+
+      .checks input[type='checkbox'] {
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        accent-color: var(--accent);
+      }
+
+      details {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: #fbfbfc;
+      }
+
+      details summary {
+        cursor: pointer;
+        padding: 10px 12px;
+        font-weight: 600;
+        font-size: 12.5px;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+      }
+
+      details summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details summary::after {
+        content: '▸';
+        color: var(--muted);
+        transition: transform 0.15s ease;
+      }
+
+      details[open] summary::after {
+        transform: rotate(90deg);
+      }
+
+      .details-body {
+        padding: 4px 12px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .details-hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .actions {
+        margin-top: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      button[type='submit'] {
+        background: var(--accent);
+        color: var(--accent-ink);
+        border: none;
+        border-radius: var(--radius);
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s ease, transform 0.05s ease;
+      }
+
+      button[type='submit']:hover {
+        opacity: 0.92;
+      }
+
+      button[type='submit']:active {
+        transform: translateY(1px);
+      }
+
+      button[type='submit']:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: -2px;
+        margin-right: 6px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .banner {
+        display: none;
+        padding: 9px 11px;
+        border-radius: var(--radius);
+        font-size: 12.5px;
+        font-weight: 500;
+      }
+
+      .banner.show {
+        display: block;
+      }
+
+      .banner.success {
+        background: var(--success-bg);
+        color: var(--success);
+        border: 1px solid rgba(28, 138, 82, 0.25);
+      }
+
+      .banner.error {
+        background: var(--danger-bg);
+        color: var(--danger);
+        border: 1px solid rgba(214, 69, 69, 0.25);
+      }
+
+      .footer-note {
+        margin-top: 14px;
+        font-size: 11px;
+        color: var(--muted);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Add Product</h1>
+      <p class="subtitle">Creates a new row on the Products tab with Status = NEW.</p>
+
+      <div id="banner" class="banner"></div>
+
+      <form id="addProductForm">
+        <div class="field">
+          <label for="source">Source</label>
+          <select id="source" name="source">
+            <option value="manual" selected>Manual</option>
+            <option value="csv">CSV</option>
+            <option value="amazon">Amazon</option>
+            <option value="shopify">Shopify</option>
+            <option value="woocommerce">WooCommerce</option>
+            <option value="etsy">Etsy</option>
+            <option value="flipkart">Flipkart</option>
+            <option value="meesho">Meesho</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="url">Product URL</label>
+          <input type="text" id="url" name="url" placeholder="https://example.com/product/123" />
+          <span class="hint">Ignored for manual entries — filled in automatically from the section below.</span>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="productId">Product ID</label>
+            <input type="text" id="productId" name="productId" placeholder="SKU-1234" />
+          </div>
+          <div class="field">
+            <label for="brand">Brand</label>
+            <input type="text" id="brand" name="brand" placeholder="Acme" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Platforms</label>
+          <div class="checks" id="platformChecks">
+            <label><input type="checkbox" name="platform" value="instagram" checked />Instagram</label>
+            <label><input type="checkbox" name="platform" value="facebook" />Facebook</label>
+            <label><input type="checkbox" name="platform" value="linkedin" />LinkedIn</label>
+            <label><input type="checkbox" name="platform" value="pinterest" />Pinterest</label>
+            <label><input type="checkbox" name="platform" value="threads" />Threads</label>
+            <label><input type="checkbox" name="platform" value="x" />X</label>
+          </div>
+          <span class="hint">Leave all unchecked to let the backend use its default platform set.</span>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="language">Language</label>
+            <input type="text" id="language" name="language" placeholder="en" />
+          </div>
+          <div class="field">
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" placeholder="Home &amp; Kitchen" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="scheduleDate">Schedule Date</label>
+            <input type="date" id="scheduleDate" name="scheduleDate" />
+          </div>
+          <div class="field">
+            <label for="scheduleTime">Schedule Time</label>
+            <input type="time" id="scheduleTime" name="scheduleTime" />
+          </div>
+        </div>
+
+        <details id="manualDetails">
+          <summary>For manual entry</summary>
+          <div class="details-body">
+            <p class="details-hint">
+              Fill these in when Source is "Manual" and there is no product page to import from. They are packed
+              into JSON and stored in the Product URL cell, where the backend reads them directly.
+            </p>
+
+            <div class="field">
+              <label for="manualTitle">Title</label>
+              <input type="text" id="manualTitle" name="manualTitle" placeholder="Wireless Noise-Cancelling Headphones" />
+            </div>
+
+            <div class="field">
+              <label for="manualDescription">Description</label>
+              <textarea id="manualDescription" name="manualDescription" placeholder="Short product description…"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="manualFeatures">Features <span class="hint">(one per line)</span></label>
+              <textarea
+                id="manualFeatures"
+                name="manualFeatures"
+                placeholder="40-hour battery life&#10;Active noise cancellation&#10;Bluetooth 5.3"
+              ></textarea>
+            </div>
+
+            <div class="row-2">
+              <div class="field">
+                <label for="manualPrice">Price</label>
+                <input type="text" id="manualPrice" name="manualPrice" placeholder="49.99" />
+              </div>
+              <div class="field">
+                <label for="manualCurrency">Currency</label>
+                <input type="text" id="manualCurrency" name="manualCurrency" placeholder="USD" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="manualImageUrls">Image URLs <span class="hint">(one per line)</span></label>
+              <textarea
+                id="manualImageUrls"
+                name="manualImageUrls"
+                placeholder="https://example.com/images/1.jpg&#10;https://example.com/images/2.jpg"
+              ></textarea>
+            </div>
+          </div>
+        </details>
+
+        <div class="actions">
+          <button type="submit" id="submitBtn">
+            <span id="submitSpinner" class="spinner" style="display: none"></span>
+            <span id="submitLabel">Add Product</span>
+          </button>
+        </div>
+      </form>
+
+      <p class="footer-note">New rows appear on the Products tab with Status = NEW.</p>
+    </div>
+
+    <script>
+      var form = document.getElementById('addProductForm');
+      var banner = document.getElementById('banner');
+      var submitBtn = document.getElementById('submitBtn');
+      var submitSpinner = document.getElementById('submitSpinner');
+      var submitLabel = document.getElementById('submitLabel');
+
+      function showBanner(kind, message) {
+        banner.textContent = message;
+        banner.className = 'banner show ' + kind;
+      }
+
+      function hideBanner() {
+        banner.className = 'banner';
+      }
+
+      function setBusy(busy) {
+        submitBtn.disabled = busy;
+        submitSpinner.style.display = busy ? 'inline-block' : 'none';
+        submitLabel.textContent = busy ? 'Adding…' : 'Add Product';
+      }
+
+      function linesToArray(value) {
+        return (value || '')
+          .split('\n')
+          .map(function (s) {
+            return s.trim();
+          })
+          .filter(function (s) {
+            return s.length > 0;
+          });
+      }
+
+      function collectPlatforms() {
+        var boxes = document.querySelectorAll('input[name="platform"]:checked');
+        var values = [];
+        for (var i = 0; i < boxes.length; i++) {
+          values.push(boxes[i].value);
+        }
+        return values;
+      }
+
+      function buildManualPayload(fields) {
+        var title = (fields.manualTitle || '').trim();
+        if (!title) return null;
+
+        var payload = { title: title };
+
+        var description = (fields.manualDescription || '').trim();
+        if (description) payload.description = description;
+
+        var features = linesToArray(fields.manualFeatures);
+        if (features.length > 0) payload.features = features;
+
+        var price = (fields.manualPrice || '').trim();
+        if (price) payload.price = price;
+
+        var currency = (fields.manualCurrency || '').trim();
+        if (currency) payload.currency = currency;
+
+        var brand = (fields.brand || '').trim();
+        if (brand) payload.brand = brand;
+
+        var category = (fields.category || '').trim();
+        if (category) payload.category = category;
+
+        var imageUrls = linesToArray(fields.manualImageUrls);
+        if (imageUrls.length > 0) payload.imageUrls = imageUrls;
+
+        var language = (fields.language || '').trim();
+        if (language) payload.language = language;
+
+        return payload;
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        hideBanner();
+
+        var fields = {
+          source: document.getElementById('source').value,
+          url: document.getElementById('url').value.trim(),
+          productId: document.getElementById('productId').value.trim(),
+          brand: document.getElementById('brand').value.trim(),
+          language: document.getElementById('language').value.trim(),
+          category: document.getElementById('category').value.trim(),
+          scheduleDate: document.getElementById('scheduleDate').value,
+          scheduleTime: document.getElementById('scheduleTime').value,
+          manualTitle: document.getElementById('manualTitle').value,
+          manualDescription: document.getElementById('manualDescription').value,
+          manualFeatures: document.getElementById('manualFeatures').value,
+          manualPrice: document.getElementById('manualPrice').value,
+          manualCurrency: document.getElementById('manualCurrency').value,
+          manualImageUrls: document.getElementById('manualImageUrls').value
+        };
+
+        var payload = {
+          source: fields.source,
+          url: fields.url,
+          productId: fields.productId,
+          brand: fields.brand,
+          platform: collectPlatforms(),
+          language: fields.language,
+          category: fields.category,
+          scheduleDate: fields.scheduleDate,
+          scheduleTime: fields.scheduleTime
+        };
+
+        if (fields.source === 'manual') {
+          var manualPayload = buildManualPayload(fields);
+          if (manualPayload) {
+            // The backend's manual source reads inline JSON straight out of
+            // the Product URL cell, so we pack it there rather than sending
+            // a separate field.
+            payload.url = JSON.stringify(manualPayload);
+          } else if (!fields.url) {
+            showBanner('error', 'For manual entry, provide at least a Title below, or a Product URL above.');
+            return;
+          }
+        }
+
+        setBusy(true);
+
+        google.script.run
+          .withSuccessHandler(function (result) {
+            setBusy(false);
+            showBanner('success', 'Added to row ' + (result && result.rowNumber ? result.rowNumber : '?') + '.');
+            form.reset();
+            // Re-check the Instagram default after reset.
+            var instagramBox = document.querySelector('input[name="platform"][value="instagram"]');
+            if (instagramBox) instagramBox.checked = true;
+          })
+          .withFailureHandler(function (error) {
+            setBusy(false);
+            var message = error && error.message ? error.message : String(error);
+            showBanner('error', 'Could not add product: ' + message);
+          })
+          .addProduct(payload);
+      });
+    </script>
+  </body>
+</html>

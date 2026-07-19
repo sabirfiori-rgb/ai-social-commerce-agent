@@ -1,0 +1,47 @@
+# ============================================================================
+# Fly.io image — identical to the root Dockerfile, EXCEPT it starts as root so
+# the entrypoint can chown the mounted Fly volume (/app/data) before dropping to
+# the non-root app user (uid 1001). On a plain Docker host use the root
+# Dockerfile instead (that one runs non-root and you chown ./data yourself).
+# Build context is the repo root.
+# ============================================================================
+FROM node:22-bookworm-slim
+
+LABEL org.opencontainers.image.title="AI Social Commerce Agent (Fly)"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates tini util-linux \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN node -e "const [maj,min]=process.versions.node.split('.').map(Number); if (maj<22||(maj===22&&min<6)) { console.error('Node >=22.6 required, found '+process.versions.node); process.exit(1); }"
+
+ENV NODE_OPTIONS="--disable-warning=ExperimentalWarning" \
+    NODE_ENV=production \
+    HTTP_HOST=0.0.0.0 \
+    HTTP_PORT=8080
+
+WORKDIR /app
+
+COPY package.json ./
+COPY package-lock.json* ./
+COPY tsconfig.json ./
+COPY vendor ./vendor
+COPY assets ./assets
+COPY web ./web
+COPY scripts ./scripts
+COPY src ./src
+
+RUN groupadd --system --gid 1001 appuser \
+    && useradd --system --uid 1001 --gid appuser --home-dir /app --shell /usr/sbin/nologin appuser \
+    && mkdir -p /app/data/output /app/data/tmp /app/credentials \
+    && chown -R appuser:appuser /app
+
+COPY deploy/fly-entrypoint.sh /usr/local/bin/fly-entrypoint.sh
+RUN chmod +x /usr/local/bin/fly-entrypoint.sh
+
+EXPOSE 8080
+
+# Runs as root only long enough to chown the mounted volume, then the entrypoint
+# drops to uid 1001. (Fly uses its own health checks from fly.toml.)
+ENTRYPOINT ["tini", "--", "/usr/local/bin/fly-entrypoint.sh"]
+CMD ["node", "--disable-warning=ExperimentalWarning", "src/main.ts"]

@@ -1,0 +1,29 @@
+# Caddy reverse proxy — automatic HTTPS + HTTP basic auth in front of the API.
+#
+# Values are read from environment variables (passed in via env_file: .env in
+# deploy/docker-compose.prod.yml). Set in your .env:
+#   SITE_ADDRESS=agent.yourdomain.com
+#   BASIC_AUTH_USER=admin
+#   BASIC_AUTH_HASH=$2a$14$....   (generate with the command below)
+#
+# Generate a password hash:
+#   docker run --rm caddy caddy hash-password --plaintext 'your-strong-password'
+#
+# Point an A/AAAA DNS record for SITE_ADDRESS at this server's public IP, and
+# open ports 80 + 443. Caddy will obtain and renew a Let's Encrypt certificate
+# automatically on first request.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	reverse_proxy app:8080
+
+	log {
+		output stdout
+		format console
+	}
+}

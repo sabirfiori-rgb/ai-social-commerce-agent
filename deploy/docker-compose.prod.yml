@@ -1,0 +1,47 @@
+# ============================================================================
+# Production overlay for a Linux host (VPS / EC2).
+# Layers on top of the base docker-compose.yml:
+#   - binds the app to LOCALHOST only (never exposed directly to the internet)
+#   - puts Caddy in front for automatic HTTPS (Let's Encrypt) + basic auth
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+#
+# Required .env additions (see below):
+#   SITE_ADDRESS=agent.yourdomain.com
+#   BASIC_AUTH_USER=admin
+#   BASIC_AUTH_HASH=<output of: docker run --rm caddy caddy hash-password --plaintext 'yourpassword'>
+# ============================================================================
+
+services:
+  app:
+    # Override the base "8080:8080" so the API is reachable only from the host /
+    # the compose network — Caddy proxies to it over the internal network.
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  caddy:
+    image: caddy:2
+    container_name: ai-social-commerce-agent-caddy
+    depends_on:
+      - app
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy-data:
+  caddy-config:

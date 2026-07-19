@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.local
+*.pem
+*.key
+service-account*.json
+credentials/
+
+# Runtime data (SQLite DB, generated assets)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+data/output/
+data/cache/
+data/tmp/
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Build artifacts (if user runs tsc emit)
+dist/
+build/
+coverage/
+data/backups/

@@ -1,0 +1,55 @@
+# ============================================================================
+# Fly.io deployment config.
+#
+# NOTE: this app uses SQLite on a local volume + an in-process job queue, so it
+# runs as a SINGLE stateful machine (do not scale beyond count=1 without moving
+# to Postgres — see docker-compose.yml comments). Fly provides HTTPS + a
+# hostname automatically; add app-level auth before sharing the URL widely.
+#
+# First-time deploy:
+#   fly launch --no-deploy --copy-config --name <your-unique-app-name>
+#   fly volumes create agent_data --size 3 --region <region>
+#   fly secrets set ENCRYPTION_KEY=$(openssl rand -hex 32)
+#   fly deploy
+#   fly scale count 1
+#   fly open
+# ============================================================================
+
+app = "ai-social-commerce-agent"       # change to a globally-unique name
+primary_region = "iad"                  # pick a region near you (fly platform regions)
+
+[build]
+  dockerfile = "deploy/Dockerfile.fly"  # fixes the mounted-volume permissions for the non-root user
+
+[env]
+  NODE_ENV = "production"
+  HTTP_HOST = "0.0.0.0"
+  HTTP_PORT = "8080"
+  SHEET_STORE = "local"
+  SQLITE_PATH = "/app/data/app.db"
+  STORAGE_LOCAL_DIR = "/app/data/output"
+  DRY_RUN = "true"                      # flip to false via `fly secrets` when going live
+  POLL_INTERVAL_MINUTES = "5"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false            # keep the worker polling; do not stop on idle
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/api/health"
+
+# Persistent disk for the SQLite DB + generated images/videos.
+[[mounts]]
+  source = "agent_data"
+  destination = "/app/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1024mb"                     # headroom for ffmpeg + resvg-wasm

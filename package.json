@@ -1,0 +1,26 @@
+{
+  "name": "ai-social-commerce-agent",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "AI Social Commerce Agent — an autonomous AI marketing employee that turns Google Sheet product rows into published social media content, fully automatically.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "start:api": "node src/boot/api.ts",
+    "start:worker": "node src/boot/worker.ts",
+    "migrate": "node scripts/migrate.ts",
+    "seed": "node scripts/seed.ts",
+    "run:once": "node scripts/run-once.ts",
+    "provision:sheet": "node scripts/provision-sheet.ts",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2"
+  }
+}

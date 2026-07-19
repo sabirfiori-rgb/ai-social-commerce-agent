@@ -1,0 +1,170 @@
+# ============================================================================
+# AI Social Commerce Agent — Docker Compose
+#
+# Default topology: a single `app` service running the combined server+worker
+# process (node src/main.ts). This is all you need — the app defaults to
+# SQLite (./data/app.db) and an in-process job queue, so no external database
+# or broker is required to run it.
+#
+# Scale-up path (optional, not required to run):
+#   - `split` profile: separates the HTTP API and the background worker into
+#     two containers sharing the same image and ./data volume. Useful once
+#     you want to scale/restart them independently.
+#   - `postgres` / `redis` services below are commented out and documented
+#     for when SQLite/in-process-queue outgrow a single box. Wire them up by
+#     setting DATABASE_DRIVER=postgres / DATABASE_URL and adding a
+#     REDIS_URL-style queue driver (not implemented by default).
+#
+# Usage:
+#   docker compose up -d --build                # default: combined `app`
+#   docker compose --profile split up -d --build # alternative: `api` + `worker`
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # Default: single container running API + worker together (src/main.ts).
+  # --------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-social-commerce-agent:latest
+    container_name: ai-social-commerce-agent
+    command: ["node", "--disable-warning=ExperimentalWarning", "src/main.ts"]
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      # Optional: mount a Google service-account key / other credential files
+      # read-only. Only needed when SHEET_STORE=google or a source/publisher
+      # requires a file-based credential (see .env.example). Safe to leave
+      # commented out if you only use env-var-based credentials.
+      - ./credentials:/app/credentials:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http=require('http');const req=http.get({host:'127.0.0.1',port:process.env.HTTP_PORT||8080,path:'/api/health',timeout:4000},(res)=>{process.exit(res.statusCode>=200&&res.statusCode<300?0:1)});req.on('error',()=>process.exit(1));req.on('timeout',()=>{req.destroy();process.exit(1)});"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # --------------------------------------------------------------------------
+  # Alternative topology: split API and worker into separate containers.
+  # Enabled only with `docker compose --profile split up`. Both share the
+  # same built image and the same ./data volume (same SQLite file), so run
+  # EITHER the default `app` service OR this `split` profile — never both
+  # against the same ./data at the same time.
+  # --------------------------------------------------------------------------
+  api:
+    profiles: ["split"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-social-commerce-agent:latest
+    container_name: ai-social-commerce-agent-api
+    command: ["node", "--disable-warning=ExperimentalWarning", "src/boot/api.ts"]
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./credentials:/app/credentials:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http=require('http');const req=http.get({host:'127.0.0.1',port:process.env.HTTP_PORT||8080,path:'/api/health',timeout:4000},(res)=>{process.exit(res.statusCode>=200&&res.statusCode<300?0:1)});req.on('error',()=>process.exit(1));req.on('timeout',()=>{req.destroy();process.exit(1)});"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    profiles: ["split"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-social-commerce-agent:latest
+    container_name: ai-social-commerce-agent-worker
+    command: ["node", "--disable-warning=ExperimentalWarning", "src/boot/worker.ts"]
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./credentials:/app/credentials:ro
+    restart: unless-stopped
+    # The worker has no HTTP listener, so it has no HTTP healthcheck; Docker
+    # falls back to plain "container is running" liveness for this service.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # --------------------------------------------------------------------------
+  # OPTIONAL scale-up path — NOT required to run this app. Uncomment and set
+  # DATABASE_DRIVER=postgres + DATABASE_URL in .env to move off SQLite once a
+  # single file/box stops being enough (e.g. multi-instance API writers).
+  # --------------------------------------------------------------------------
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: ai-social-commerce-agent-postgres
+  #   environment:
+  #     POSTGRES_USER: agent
+  #     POSTGRES_PASSWORD: change-me
+  #     POSTGRES_DB: ai_social_commerce_agent
+  #   volumes:
+  #     - pg-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U agent -d ai_social_commerce_agent"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #
+  # Then point the app at it via .env:
+  #   DATABASE_DRIVER=postgres
+  #   DATABASE_URL=postgres://agent:change-me@postgres:5432/ai_social_commerce_agent
+
+  # --------------------------------------------------------------------------
+  # OPTIONAL scale-up path — NOT required to run this app. The worker/queue is
+  # in-process by default (WORKER_CONCURRENCY in .env controls concurrency
+  # within a single worker process). Add Redis only if/when you introduce a
+  # distributed queue (e.g. BullMQ) to fan work out across multiple worker
+  # containers/hosts.
+  # --------------------------------------------------------------------------
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ai-social-commerce-agent-redis
+  #   command: ["redis-server", "--appendonly", "yes"]
+  #   volumes:
+  #     - redis-data:/data
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #
+  # Then point the app at it via .env (requires adding a redis-backed queue
+  # driver to the codebase — not implemented by default):
+  #   REDIS_URL=redis://redis:6379
+
+# volumes:
+#   pg-data:
+#   redis-data:
