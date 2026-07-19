@@ -34,3 +34,7 @@ dist/
 build/
 coverage/
 data/backups/
+
+# Vendored binaries — fetched via `node scripts/fetch-vendor.mjs` (kept out of git)
+vendor/resvg/*.wasm
+vendor/fonts/*.ttf

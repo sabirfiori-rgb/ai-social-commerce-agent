@@ -57,6 +57,10 @@ COPY web ./web
 COPY scripts ./scripts
 COPY src ./src
 
+# Fetch vendored runtime assets (resvg WASM + fonts) that are not committed to git.
+# Idempotent: skips anything already copied in from the build context.
+RUN node scripts/fetch-vendor.mjs
+
 # --- Non-root runtime user ---------------------------------------------------
 RUN groupadd --system --gid 1001 appuser \
     && useradd --system --uid 1001 --gid appuser --home-dir /app --shell /usr/sbin/nologin appuser \

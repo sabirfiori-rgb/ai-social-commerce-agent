@@ -9,6 +9,7 @@
     "node": ">=22.6.0"
   },
   "scripts": {
+    "postinstall": "node scripts/fetch-vendor.mjs || true",
     "start": "node src/main.ts",
     "start:api": "node src/boot/api.ts",
     "start:worker": "node src/boot/worker.ts",
