@@ -52,7 +52,6 @@ COPY package-lock.json* ./
 # don't invalidate the vendored-asset layers on rebuild.
 COPY tsconfig.json ./
 COPY vendor ./vendor
-COPY assets ./assets
 COPY web ./web
 COPY scripts ./scripts
 COPY src ./src
