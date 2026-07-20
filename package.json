@@ -14,11 +14,15 @@
     "start:api": "node src/boot/api.ts",
     "start:worker": "node src/boot/worker.ts",
     "migrate": "node scripts/migrate.ts",
+    "migrate:postgres": "node scripts/migrate-postgres.ts",
     "seed": "node scripts/seed.ts",
     "run:once": "node scripts/run-once.ts",
     "provision:sheet": "node scripts/provision-sheet.ts",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pg": "^8.11.0"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
