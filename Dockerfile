@@ -69,9 +69,6 @@ RUN groupadd --system --gid 1001 appuser \
 
 USER appuser
 
-# Persist SQLite db + generated assets outside the writable image layer.
-VOLUME ["/app/data"]
-
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
