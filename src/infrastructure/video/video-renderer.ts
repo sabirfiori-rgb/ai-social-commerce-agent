@@ -123,7 +123,6 @@ export class FfmpegVideoRenderer implements IVideoRenderer {
       // the clip with -frames:v. Using d=<frames> on a looped still causes a
       // frame-count explosion (frames x inputFrames) that is extremely slow.
       const vf = [
-        `scale=${Math.round(W * 1.1)}:${Math.round(H * 1.1)}`,
         `zoompan=z='min(1.001+0.0013*on,1.14)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${W}x${H}`,
         `fade=t=in:st=0:d=0.4`,
         `fade=t=out:st=${fadeOutAt}:d=0.45`,
@@ -131,7 +130,7 @@ export class FfmpegVideoRenderer implements IVideoRenderer {
       ].join(',');
       const t0 = Date.now();
       await runFfmpeg(
-        ['-y', '-framerate', String(fps), '-loop', '1', '-i', scenePath, '-vf', vf, '-frames:v', String(frames), '-r', String(fps), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-pix_fmt', 'yuv420p', '-an', clipPath],
+        ['-y', '-threads', '1', '-framerate', String(fps), '-loop', '1', '-i', scenePath, '-vf', vf, '-frames:v', String(frames), '-r', String(fps), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-pix_fmt', 'yuv420p', '-threads', '1', '-an', clipPath],
         { bin: this.cfg.ffmpegPath, label: `scene-${i}` },
       );
       log.debug('scene encoded', { scene: i, ms: Date.now() - t0 });
@@ -140,7 +139,7 @@ export class FfmpegVideoRenderer implements IVideoRenderer {
 
     // 2) Concatenate clips (identical encode params → stream copy).
     const listPath = join(workDir, 'concat.txt');
-    writeFileSync(listPath, clipPaths.map((p) => `file '${p.replace(/'/g, "'\\''")}'`).join('\n'));
+    writeFileSync(listPath, clipPaths.map((p) => `file '${p.replace(/'/g, "'\\\'\'")}'`).join('\n'));
     const silentPath = join(workDir, 'silent.mp4');
     await runFfmpeg(['-y', '-f', 'concat', '-safe', '0', '-i', listPath, '-c', 'copy', silentPath], {
       bin: this.cfg.ffmpegPath,
@@ -203,3 +202,4 @@ export class FfmpegVideoRenderer implements IVideoRenderer {
     return { url: stored.url, storageKey: stored.key, bytes: stored.bytes };
   }
 }
+
