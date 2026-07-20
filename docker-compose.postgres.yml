@@ -1,0 +1,25 @@
+# Postgres compose overlay for ai-social-commerce-agent
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-social-commerce-agent-postgres
+    environment:
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: ai_social_commerce_agent
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent -d ai_social_commerce_agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg-data:
